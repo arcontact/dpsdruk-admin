@@ -23,11 +23,11 @@ function videourlToHTML(videourl){
 }
 
 var	$$ = Dom7, myApp, mainView,
-	initilize_complete = false, index_articles_loaded = false, categories = [], map_loaded = false,
-	articles_limit = 10, articles_offset = articles_limit,
+	orders_limit = 10, orders_offset = orders_limit,
+	initilize_complete = false, categories = [],
 	calculator_query = {},
 	myMessages, totalMessages = 0, chat_interval,
-	baseurl = 'https://www.beta.dpsdruk.pl/',
+	baseurl = 'https://www.dpsdruk.pl/',
 	session_id = randId(),
 	ENVIRONMENT = 'development'; //production
 var app = {
@@ -91,34 +91,16 @@ var app = {
 	handle_init_requests: function(){
 		if(app.gotConnection()){
 			myApp.showPreloader('Ładuję aplikację...');
-			var chatid = localStorage.chatid;
 			
 			$$.ajax({
-				url: baseurl+'api/init/'+articles_limit,
+				url: baseurl+'api/init_admin/' + orders_limit,
 				crossDomain: true,
 				dataType: 'json',
 				data: {
 					key: 'e547a2036c6faffc2859e132e7eee66f',
-					chatid: chatid,
 					session_id: session_id
 				},
 				success: function(response, status, xhr){
-					$$('.splash_articles').html('<div class="list-block media-list"><ul></ul></div>');
-					$$.each(response.articles, function(i, article){
-						var article_date = moment(article.date).format('LL');
-						var article_image;
-						if(typeof article.image != 'undefined'){
-							article_image = baseurl+'assets/articles/s1_'+article.image;
-						} else {
-							article_image = 'img/noimage200x104.jpg';
-						}
-						var li = '<li><a href="single_article.html?article_id='+article.id+'" class="item-link item-content"><div class="item-media"><img data-src="'+article_image+'" class="lazy" width="80" height="42" /></div><div class="item-inner"><div class="item-title-row"><div class="item-title">'+article.title+'</div></div><div class="item-text"><small>'+article_date+'</small></div></div></a></li>';
-						$$('.splash_articles ul').append(li);
-						$$('.articles-list ul').append(li);
-					});
-					$$('.splash_articles').append('<a href="#index_articles" class="button">POKAŻ WSZYSTKIE</a>');
-					myApp.initImagesLazyLoad($$('.page[data-page="index"]'));
-					
 					$$('#categories-list').html('<div class="list-block"></div>');
 					$$.each(response.categories,function(i, category){
 						if(typeof category.children != 'undefined'){
@@ -131,72 +113,14 @@ var app = {
 						}
 					});
 					
-					$$('.page[data-page="about"] .page-content').append('<div class="content-block"><article>'+response.about.content+'</article></div>');
-					if(typeof response.about.sections != 'undefined'){
-						$$.each(response.about.sections,function(i,section){
-							$$('.page[data-page="about"] .page-content').append('<div class="clearfix"></div><div class="content-block"><h3>'+section.title+'</h3><article>'+section.content.replace(/<a(\s[^>]*)?>/ig, '').replace(/<\/a>/ig, '')+'</article></div>');
-							
-							if(typeof section.galleries != 'undefined'){
-								var sectionPhotoBrowsers = [];
-								$$.each(section.galleries, function(i,gallery){
-									var _photos = [];
-									var id = randId();
-									$$.each(gallery.photos, function(j,photo){
-										if(j == 0){
-											$$('.page[data-page="about"] .page-content').append('<div class="content-block"><a class="card pb" data-id="'+id+'"><div style="background-image:url('+baseurl+'assets/media/s4_'+photo+')" valign="bottom" class="card-header color-white no-border"><div class="chip"><div class="chip-media"><i class="material-icons">&#xe413;</i></div><div class="card-label">'+gallery.photos.length+'</div></div></div><div class="card-content"><div class="card-content-inner">'+gallery.title+'</div></div></a></div>');
-										}
-										_photos.push(baseurl+'assets/media/s4_'+photo);
-									});
-									var myPhotoBrowser = myApp.photoBrowser({
-										photos: _photos,
-										ofText: 'z',
-										backLinkText: 'Powrót',
-										theme: 'dark',
-										lazyLoading: true,
-										lazyLoadingInPrevNext: true
-									});
-									sectionPhotoBrowsers.push({
-										id: id,
-										pb: myPhotoBrowser
-									});
-								});
-								$$('.pb').on('click', function(){
-									var id = $$(this).data('id');
-									$$.each(sectionPhotoBrowsers, function(i, _pb){
-										if(id == _pb.id){
-											_pb.pb.open();
-										}
-									});
-								});
-							}
-							if(typeof section.videos != 'undefined'){
-								$$.each(section.videos, function(i,video){
-									var id = randId();
-									$$('.page[data-page="about"] .page-content').append('<div class="content-block"><video id="'+id+'" class="video-js vjs-16-9 vjs-big-play-centered" controls preload="auto"><source src="'+baseurl+'assets/video/'+video+'" type="video/mp4"></video></div>');
-									videojs(id);
-								});
-							}
-							if(typeof section.videourls != 'undefined'){
-								$$.each(section.videourls, function(i,videourl){
-									var videourlHTML = videourlToHTML(videourl);
-									$$('.page[data-page="about"] .page-content').append('<div class="content-block">'+videourlHTML+'</div>');
-								});
-								app.youtube_listeners();
-							}
-							if(typeof section.files != 'undefined'){
-								var html = '<div class="list-block media-list"><ul>';
-								$$.each(section.files, function(i,_file){
-									html += '<li><a href="'+baseurl+'assets/files/'+_file.filename+'" class="external item-link item-content"><div class="item-media"><img src="img/filetypes/'+_file.type+'.png" width="30" height="30"></div><div class="item-inner"><div class="item-title">'+_file.title+'</div></div></a></li>';
-								});
-								html += '</ul></div>';
-								$$('.page[data-page="about"] .page-content').append('<div class="content-block">'+html+'</div>');
-							}
-						});
-					}
-					$$('.page[data-page="about"] .page-content .content-block a').addClass('external');
-					$$('.page[data-page="about"] article img').each(function(){
-						$$(this).attr('src', baseurl.substring(0, baseurl.length-1) + $$(this).attr('src').replace(baseurl,"/"));
+					$$('.splash_orders').html('<div class="content-block-title">ZAMÓWIENIA</div><div class="list-block media-list"><ul></ul></div>');
+					$$.each(response.orders, function(i, order){
+						var order_date = moment(order.date_create).format('LL');
+						var li = '<li class="order-status-'+order.status_id+'"><a href="single_order.html?order_id='+order.id+'" class="item-link item-content"><div class="item-inner"><div class="item-title-row"><div class="item-title">'+order.products+'<br /><small>Status: '+order.status+'</small></div></div><div class="item-subtitle"><strong>'+order.price+' PLN</strong></div><div class="item-text"><small>'+order_date+'</small></div></div></a></li>';
+						$$('.splash_orders ul').append(li);
+						$$('.orders-list ul').append(li);
 					});
+					$$('.splash_orders').append('<a href="#orders" class="button">POKAŻ WSZYSTKIE</a>');
 					
 					app.init_calculator(response);
 					app.chat_preinit(response);
@@ -273,7 +197,7 @@ var app = {
 			}
 		});
 		$$(document).on('page:afteranimation', function(e){
-			if(mainView.activePage.name == 'chat'){
+			if(mainView.activePage.name == 'single_chat'){
 				app.chat_init();
 			} else {
 				clearInterval(chat_interval);
@@ -292,153 +216,6 @@ var app = {
 		myApp.onPageReinit('index', function(page){
 			if(!initilize_complete){
 				app.handle_init_requests();
-			}
-		});
-		myApp.onPageInit('contact', function(page){
-			if(!map_loaded){
-				app.initMap();
-			}
-		});
-		myApp.onPageInit('index_articles', function(page){
-			$$('.articles-list').append('<div class="infinite-scroll-preloader"><div class="preloader"><span class="preloader-inner"><span class="preloader-inner-gap"></span><span class="preloader-inner-left"><span class="preloader-inner-half-circle"></span></span><span class="preloader-inner-right"><span class="preloader-inner-half-circle"></span></span></span></div></div>');
-			var loading = false;
-			var lastIndex = $$('.articles-list .list-block li').length;
-			$$('.articles-infinite-scroll.infinite-scroll').on('infinite', function () {
-				if(loading) return;
-				loading = true;
-				setTimeout(function(){
-					if(app.gotConnection()){
-						$$.ajax({
-							url: baseurl+'api/index_articles/' + articles_limit + '/' + articles_offset,
-							crossDomain: true,
-							dataType: 'json',
-							data: {
-								key: 'e547a2036c6faffc2859e132e7eee66f',
-								session_id: session_id
-							},
-							success: function(response, status, xhr){
-								loading = false;
-								if(response.length <= 0){
-									myApp.detachInfiniteScroll($$('.infinite-scroll'));
-									$$('.infinite-scroll-preloader').remove();
-									return;
-								}
-								var html = '';
-								$$.each(response, function(i, article){
-									var article_date = moment(article.date).format('LL');
-									var article_image;
-									if(typeof article.image != 'undefined')
-										article_image = baseurl+'assets/articles/s1_'+article.image;
-									else
-										article_image = 'img/noimage200x104.jpg';
-									html += '<li><a href="single_article.html?article_id='+article.id+'" class="item-link item-content"><div class="item-media"><img data-src="'+article_image+'" class="lazy" width="80" height="42" /></div><div class="item-inner"><div class="item-title-row"><div class="item-title">'+article.article_translation_title+'</div></div><div class="item-text"><small>'+article_date+'</small></div></div></a></li>';
-								});
-								$$('.articles-list .list-block ul').append(html);
-								lastIndex = $$('.articles-list .list-block li').length;
-								articles_offset = articles_offset + articles_limit;
-								myApp.initImagesLazyLoad($$('.page[data-page="index_articles"]'));
-							},
-							error: function(xhr, status){
-								myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać aktualności ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
-									mainView.router.loadPage('offline_contact.html');
-								});
-							}
-						});
-					} else {
-						app.offline();
-					}
-				}, 1000);
-			});
-			myApp.initImagesLazyLoad($$('.page[data-page="index_articles"]'));
-		});
-		myApp.onPageInit('single_article', function(page){
-			if(app.gotConnection()){
-				myApp.showPreloader('Ładuję aktualność...');
-				$$.ajax({
-					url: baseurl+'api/get_article/' + page.query.article_id,
-					crossDomain: true,
-					dataType: 'json',
-					data: {
-						key: 'e547a2036c6faffc2859e132e7eee66f',
-						session_id: session_id
-					},
-					success: function(response, status, xhr){
-						var article = response;
-						var article_date = moment(article.date).format('LLLL');
-						var article_image = '';
-						if(typeof article.image != 'undefined')
-							article_image = '<img src="'+baseurl+'assets/articles/s3_'+article.image+'" class="img-responsive" />';
-						$$('#single_article_contents').html('<div class="content-block"><p class="text-muted"><small><i>'+article_date+'</i></small></p><h2>'+article.title+'</h2>'+article_image+'<article>'+article.content+'</article></div>');
-						$$('#single_article_contents article img').each(function(){
-							$$(this).attr('src', baseurl.substring(0, baseurl.length-1) + $$(this).attr('src').replace(baseurl,"/"));
-						});
-						if(typeof article.galleries != 'undefined'){
-							var photoBrowsers = [];
-							$$.each(article.galleries, function(i,gallery){
-								var _photos = [];
-								var id = randId();
-								$$.each(gallery.photos, function(j,photo){
-									if(j == 0){
-										$$('#single_article_contents .content-block').append('<a class="card pb" data-id="'+id+'"><div style="background-image:url('+baseurl+'assets/media/s4_'+photo+')" valign="bottom" class="card-header color-white no-border"><div class="chip"><div class="chip-media"><i class="material-icons">&#xe413;</i></div><div class="card-label">'+gallery.photos.length+'</div></div></div><div class="card-content"><div class="card-content-inner">'+gallery.title+'</div></div></a>');
-									}
-									_photos.push(baseurl+'assets/media/s4_'+photo);
-								});
-								var myPhotoBrowser = myApp.photoBrowser({
-									photos: _photos,
-									ofText: 'z',
-									backLinkText: 'Powrót',
-									theme: 'dark',
-									lazyLoading: true,
-									lazyLoadingInPrevNext: true
-								});
-								photoBrowsers.push({
-									id: id,
-									pb: myPhotoBrowser
-								});
-							});
-							$$('.pb').on('click', function(){
-								var id = $$(this).data('id');
-								$$.each(photoBrowsers, function(i, _pb){
-									if(id == _pb.id){
-										_pb.pb.open();
-									}
-								});
-							});
-						}
-						if(typeof article.videos != 'undefined'){
-							$$.each(article.videos, function(i,video){
-								var id = randId();
-								$$('#single_article_contents .content-block').append('<video id="'+id+'" class="video-js vjs-16-9 vjs-big-play-centered" controls preload="auto"><source src="'+baseurl+'assets/video/'+video+'" type="video/mp4"></video>');
-								videojs(id);
-							});
-						}
-						if(typeof article.videourls != 'undefined'){
-							$$.each(article.videourls, function(i,videourl){
-								var videourlHTML = videourlToHTML(videourl);
-								$$('#single_article_contents .content-block').append(videourlHTML);
-							});
-							app.youtube_listeners();
-						}
-						if(typeof article.files != 'undefined'){
-							var html = '<div class="list-block media-list"><ul>';
-							$$.each(article.files, function(i,_file){
-								html += '<li><a href="'+baseurl+'assets/files/'+_file.filename+'" class="external item-link item-content"><div class="item-media"><img src="img/filetypes/'+_file.type+'.png" width="30" height="30"></div><div class="item-inner"><div class="item-title">'+_file.title+'</div></div></a></li>';
-							});
-							html += '</ul></div>';
-							$$('#single_article_contents .content-block').append(html);
-						}
-					},
-					error: function(xhr, status){
-						myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać aktualności ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
-							mainView.router.loadPage('offline_contact.html');
-						});
-					},
-					complete: function(){
-						myApp.hidePreloader();
-					}
-				});
-			} else {
-				app.offline();
 			}
 		});
 		myApp.onPageInit('single_category', function(page){
@@ -625,23 +402,238 @@ var app = {
 				app.offline();
 			}
 		});
-		$$('#contact-form').attr('action', baseurl+'api/contact_form?key=e547a2036c6faffc2859e132e7eee66f&session_id='+session_id); //baseurl definiowany jest w app.js
-		$$('#contact-form').on('form:beforesend', function(e){
-			myApp.showPreloader();
+		
+		myApp.onPageInit('orders', function(page){
+			$$('.orders-list').append('<div class="infinite-scroll-preloader"><div class="preloader"><span class="preloader-inner"><span class="preloader-inner-gap"></span><span class="preloader-inner-left"><span class="preloader-inner-half-circle"></span></span><span class="preloader-inner-right"><span class="preloader-inner-half-circle"></span></span></span></div></div>');
+			var loading = false;
+			var lastIndex = $$('.orders-list .list-block li').length;
+			$$('.orders-infinite-scroll.infinite-scroll').on('infinite', function () {
+				if(loading) return;
+				loading = true;
+				setTimeout(function(){
+					if(app.gotConnection()){
+						$$.ajax({
+							url: baseurl+'api/index_orders/' + orders_limit + '/' + orders_offset,
+							crossDomain: true,
+							dataType: 'json',
+							data: {
+								key: 'e547a2036c6faffc2859e132e7eee66f',
+								session_id: session_id
+							},
+							success: function(response, status, xhr){
+								loading = false;
+								if(response.length <= 0){
+									myApp.detachInfiniteScroll($$('.infinite-scroll'));
+									$$('.infinite-scroll-preloader').remove();
+									$$('.orders-list').append('<div class="alert alert-warning" style="margin-bottom:20px;"><strong>Brak więcej zamówień.</strong></div>');
+									return;
+								}
+								var html = '';
+								$$.each(response, function(i, order){
+									var order_date = moment(order.date_create).format('LL');
+									html += '<li class="order-status-'+order.status_id+'"><a href="single_order.html?order_id='+order.id+'" class="item-link item-content"><div class="item-inner"><div class="item-title-row"><div class="item-title">'+order.products+'<br /><small>Status: '+order.status+'</small></div></div><div class="item-subtitle"><strong>'+order.price+' PLN</strong></div><div class="item-text"><small>'+order_date+'</small></div></div></a></li>';
+								});
+								$$('.orders-list .list-block ul').append(html);
+								lastIndex = $$('.orders-list .list-block li').length;
+								orders_offset = orders_offset + orders_limit;
+							},
+							error: function(xhr, status){
+								myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać zamówień ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
+									mainView.router.loadPage('offline_contact.html');
+								});
+							}
+						});
+					} else {
+						app.offline();
+					}
+				}, 1000);
+			});
 		});
-		$$('#contact-form').on('form:success', function(e){
-			myApp.hidePreloader();
-			var xhr = e.detail.xhr;
-			var response = JSON.parse(xhr.response);
-			myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />'+response.message+'</div>','');
-			if(response.type == 'success'){
-				$$('#contact-form')[0].reset();
+		myApp.onPageInit('single_order', function(page){
+			if(app.gotConnection()){
+				myApp.showPreloader('Ładuję zamówienie...');
+				$$.ajax({
+					url: baseurl+'api/get_order/' + page.query.order_id,
+					crossDomain: true,
+					dataType: 'json',
+					data: {
+						key: 'e547a2036c6faffc2859e132e7eee66f',
+						session_id: session_id
+					},
+					success: function(response, status, xhr){
+						$$('.page[data-page="single_order"] .single_order_contents').html(response.view);
+					},
+					error: function(xhr, status){
+						myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać zamówienia ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
+							mainView.router.loadPage('offline_contact.html');
+						});
+					},
+					complete: function(){
+						myApp.hidePreloader();
+					}
+				});
+			} else {
+				app.offline();
 			}
 		});
-		$$('#contact-form').on('form:error', function(e){
-			myApp.hidePreloader();
-			myApp.alert('Przepraszamy ale wystąpił błąd podczas wysyłania formularza.','');
+		
+		myApp.onPageInit('clients', function(page){
+			if(app.gotConnection()){
+				myApp.showPreloader('Ładuję listę klientów...');
+				$$.ajax({
+					url: baseurl+'api/index_clients',
+					crossDomain: true,
+					dataType: 'json',
+					data: {
+						key: 'e547a2036c6faffc2859e132e7eee66f',
+						session_id: session_id
+					},
+					success: function(response, status, xhr){
+						$$('.page[data-page="clients"] .list-block').html(response.view);
+					},
+					error: function(xhr, status){
+						myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać listy klientów ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
+							mainView.router.loadPage('offline_contact.html');
+						});
+					},
+					complete: function(){
+						myApp.hidePreloader();
+					}
+				});
+			} else {
+				app.offline();
+			}
 		});
+		myApp.onPageInit('single_client', function(page){
+			if(app.gotConnection()){
+				myApp.showPreloader('Ładuję dane klienta...');
+				$$.ajax({
+					url: baseurl+'api/get_client/' + page.query.client_id,
+					crossDomain: true,
+					dataType: 'json',
+					data: {
+						key: 'e547a2036c6faffc2859e132e7eee66f',
+						session_id: session_id
+					},
+					success: function(response, status, xhr){
+						$$('.page[data-page="single_client"] .single_client_contents').html(response.view);
+					},
+					error: function(xhr, status){
+						myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać danych klienta ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
+							mainView.router.loadPage('offline_contact.html');
+						});
+					},
+					complete: function(){
+						myApp.hidePreloader();
+					}
+				});
+			} else {
+				app.offline();
+			}
+		});
+		
+		myApp.onPageInit('chat_index', function(page){
+			if(app.gotConnection()){
+				myApp.showPreloader('Ładuję czat...');
+				$$.ajax({
+					url: baseurl+'api/index_messages',
+					crossDomain: true,
+					dataType: 'json',
+					data: {
+						key: 'e547a2036c6faffc2859e132e7eee66f',
+						session_id: session_id
+					},
+					success: function(response, status, xhr){
+						$$('.page[data-page="chat_index"] .page-content').html(response.view);
+						$$('.page[data-page="chat_index"] .navbar .left a').on('click',function(){
+							mainView.router.loadPage('#index');
+						});
+					},
+					error: function(xhr, status){
+						myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać wiadomości czatu ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
+							mainView.router.loadPage('offline_contact.html');
+						});
+					},
+					complete: function(){
+						myApp.hidePreloader();
+					}
+				});
+			} else {
+				app.offline();
+			}
+		});
+		myApp.onPageInit('single_chat', function(page){
+			if(app.gotConnection()){
+				myApp.showPreloader('Ładuję czat...');
+				$$.ajax({
+					url: baseurl+'api/index_messages/' + page.query.chatid,
+					crossDomain: true,
+					dataType: 'json',
+					data: {
+						key: 'e547a2036c6faffc2859e132e7eee66f',
+						session_id: session_id
+					},
+					success: function(response, status, xhr){
+						$$('.page[data-page="single_chat"] .messages').html(response.view);
+						myMessages = myApp.messages('.page[data-page="single_chat"] .messages', {
+							autoLayout: true,
+						});
+						myMessages.scrollMessages();
+						var myMessagebar = myApp.messagebar('.page[data-page="single_chat"] .messagebar');
+						$$('.messagebar .link').on('click', function () {
+							var messageText = myMessagebar.value().replace(/(?:\r\n|\r|\n)/g, '<br />').trim();
+							if(messageText.length === 0) return;
+							myMessagebar.clear();
+							
+							$$.ajax({
+								url: baseurl+'api/add_message/1',
+								crossDomain: true,
+								dataType: 'json',
+								data: {
+									key: 'e547a2036c6faffc2859e132e7eee66f',
+									session_id: session_id,
+									chatid: page.query.chatid,
+									content: messageText,
+									nickname: 'DPSDRUK.PL'
+								},
+								success: function(response){
+									switch(response.type){
+										case "success":
+											myMessages.addMessage({
+												text: messageText,
+												type: 'sent',
+												name: 'DPSDRUK.PL',
+												day: 'Dzisiaj',
+												time: (new Date()).getHours() + ':' + (new Date()).getMinutes()
+											});
+											//clearInterval(chat_interval);
+											//app.chat_init_interval();
+										break;
+										case "error":
+											myApp.alert(response.message);
+										break;
+									}
+								},
+								error: function(){
+									myApp.alert('Przepraszamy ale wystąpił błąd podczas wysyłania wiadomości.');
+								},
+							});
+						});
+					},
+					error: function(xhr, status){
+						myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />Przepraszamy ale nie udało się pobrać wiadomości czatu ze strony <a href="'+baseurl+'" class="external">www.dpsdruk.pl</a></div>', '', function(){
+							mainView.router.loadPage('offline_contact.html');
+						});
+					},
+					complete: function(){
+						myApp.hidePreloader();
+					}
+				});
+			} else {
+				app.offline();
+			}
+		});
+		
 		$$('#calculator-form').on('form:beforesend', function(e){
 			myApp.showPreloader();
 		});
@@ -658,22 +650,6 @@ var app = {
 			myApp.hidePreloader();
 			myApp.alert('Przepraszamy ale wystąpił błąd podczas komunikacji ze stroną www.dpsdruk.pl.','');
 		});
-		$$('#calculator-send').on('form:beforesend', function(e){
-			myApp.showPreloader();
-		});
-		$$('#calculator-send').on('form:success', function(e){
-			myApp.hidePreloader();
-			var xhr = e.detail.xhr;
-			var response = JSON.parse(xhr.response);
-			myApp.alert('<div class="text-center"><img src="img/logo.png" class="img-responsive" /><br />'+response.message+'</div>','');
-			if(response.type == 'success'){
-				myApp.closePanel();
-			}
-		});
-		$$('#calculator-send').on('form:error', function(e){
-			myApp.hidePreloader();
-			myApp.alert('Przepraszamy ale wystąpił błąd podczas wysyłania formularza.','');
-		});
 		myApp.onPageInit('calculator', function(page){
 			app.calculator_fill(page.query);
 		});
@@ -688,10 +664,16 @@ var app = {
 		$$(window).on('resize',function(){
 			app.index_grid();
 		});
+		window.onerror = function(msg, url, line, col, error) {
+			var extra = !col ? '' : '\ncolumn: ' + col;
+			extra += !error ? '' : '\nerror: ' + error;
+			myApp.alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
+			var suppressErrorAlert = true;
+			return suppressErrorAlert;
+		};
 	},
 	init_calculator: function(response){
 		$$('#calculator-form').attr('action', baseurl+'api/calculator_form?key=e547a2036c6faffc2859e132e7eee66f&session_id='+session_id); //baseurl definiowany jest w app.js więc tutaj trzeba ustawić atrybut `action`
-		$$('#calculator-send').attr('action', baseurl+'api/calculator_send?key=e547a2036c6faffc2859e132e7eee66f&session_id='+session_id); //baseurl definiowany jest w app.js więc tutaj trzeba ustawić atrybut `action`
 		$$.each(response.calculator_machines,function(id,title){
 			$$('#machine_id').append('<option value="'+id+'" '+(id=='1' ? 'selected="selected"' : '')+'>'+title+'</option>');
 		});
@@ -1219,12 +1201,6 @@ var app = {
 						$$('#express').length && $$('#express').prop('checked') ? url_params.express = '1' : null;
 						var _url = baseurl+'kalkulator?'+$$.serializeObject(url_params);
 						$$('#calculator-button-url').attr('href', _url);
-						
-						var serialized_data = url_params;
-						serialized_data.price_netto = response.price_netto;
-						serialized_data.price_brutto = response.price_brutto;
-						$$('#calculator-send-info').html('<strong>'+response.title+'</strong><br /><strong>'+response.width+'</strong> x <strong>'+response.height+'</strong> mm<br /><strong>'+response.quantity+'</strong> szt.<br /><strong>'+response.price_brutto+'</strong> PLN brutto');
-						$$('#calculator-send-serialized-data').val(JSON.stringify(serialized_data));
 					break;
 					case 'error':
 						myApp.alert(response.message, '');
@@ -1293,9 +1269,8 @@ var app = {
 			}
 		}
 	},
-	
 	chat_preinit: function(response){
-		var messages = [];
+		/*var messages = [];
 		if(typeof response.messages != 'undefined' && response.messages.length > 0){
 			$$.each(response.messages, function(i,message){
 				var msg = {
@@ -1311,10 +1286,10 @@ var app = {
 		myMessages = myApp.messages('.page[data-page="chat"] .messages', {
 			autoLayout: true,
 			messages: messages
-		});
+		});*/
 	},
 	chat_init: function(){
-		var nickname = localStorage.nickname;
+		/*var nickname = localStorage.nickname;
 		if(typeof nickname == 'undefined'){
 			myApp.prompt('Podaj imię i nazwisko', 
 				function(value){
@@ -1328,10 +1303,10 @@ var app = {
 			);
 		} else {
 			app.chat_listeners();
-		}
+		}*/
 	},
 	chat_listeners: function(){
-		$$('.init-message-text').html('Witaj '+localStorage.nickname+',<br />w czym możemy pomóc?');
+		/*$$('.init-message-text').html('Witaj '+localStorage.nickname+',<br />w czym możemy pomóc?');
 		myMessages.scrollMessages();
 		var myMessagebar = myApp.messagebar('.messagebar');
 		$$('.messagebar .link').on('click', function () {
@@ -1378,15 +1353,15 @@ var app = {
 		totalMessages = $$('.page[data-page="chat"] .messages > .message').length - 1;
 		if(totalMessages > 0){
 			app.chat_init_interval();
-		}
+		}*/
 	},
 	chat_init_interval: function(){
-		chat_interval = setInterval(function(){
+		/*chat_interval = setInterval(function(){
 			app.chat_check_new_messages();
-		}, 30000);
+		}, 30000);*/
 	},
 	chat_check_new_messages: function(){
-		totalMessages = $$('.page[data-page="chat"] .messages > .message').length - 1;
+		/*totalMessages = $$('.page[data-page="chat"] .messages > .message').length - 1;
 		$$.ajax({
 			url: baseurl+'api/check_messages',
 			crossDomain: true,
@@ -1421,9 +1396,8 @@ var app = {
 				clearInterval(chat_interval);
 				app.chat_init_interval();
 			}
-		});
+		});*/
 	},
-	
 	youtube_listeners: function(){
 		if($$('.youtube-mobile[data-embed]').length){
 			$$(".youtube-mobile[data-embed]").each(function(){
@@ -1449,27 +1423,5 @@ var app = {
 			'height': rw+'px',
 			'line-height': rw+'px',
 		});
-	},
-	
-	initMap: function(){
-		var myLatLng = {lat: 54.148255, lng: 19.440690};
-        var map = new google.maps.Map(document.getElementById('gmap'), {
-			zoom: 13,
-			center: myLatLng,
-			styles: [{"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":45}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#e74c3c"},{"visibility":"on"}]}]
-		});
-        var marker = new google.maps.Marker({
-			position: myLatLng,
-			map: map,
-			title: 'DPSDRUK.PL',
-			icon: 'img/marker.png'
-        });
-		var infowindow = new google.maps.InfoWindow({
-			content: '<strong>Agencja Reklamowa CONTACT</strong><br />ul. Mikołaja Firleja 27<br />82-300 Elbląg'
-		});
-		marker.addListener('click', function() {
-			infowindow.open(map, marker);
-		});
-		map_loaded = true;
 	}
 };

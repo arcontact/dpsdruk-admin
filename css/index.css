@@ -1,10 +1,15 @@
 .list-block input[type="time"], .list-block input[type="number"], .list-block input[type="text"], .list-block input[type="password"], .list-block input[type="search"], .list-block input[type="email"], .list-block input[type="tel"], .list-block input[type="url"], .list-block input[type="date"], .list-block input[type="datetime-local"], .list-block select, .list-block textarea{background-color:#f7f7f7; padding:0 5px;}
 .list-block li li:last-child .item-inner::after, .list-block li:last-child li .item-inner::after{display:none;}
-.alert{padding:15px;margin-bottom:20px;border:1px solid transparent;}.alert-success{background-color:#dff0d8;border-color:#d6e9c6;color:#3c763d}.alert-info{background-color:#d9edf7;border-color:#bce8f1;color:#31708f}.alert-warning{background-color:#fcf8e3;border-color:#faebcc;color:#8a6d3b}.alert-danger{background-color:#f2dede;border-color:#ebccd1;color:#a94442}
+.alert{padding:15px;margin-bottom:20px;border:1px solid transparent;}
+.alert-success{background-color:#dff0d8;border-color:#d6e9c6;color:#3c763d}
+.alert-info{background-color:#d9edf7;border-color:#bce8f1;color:#31708f}
+.alert-warning{background-color:#fcf8e3;border-color:#faebcc;color:#8a6d3b}
+.alert-danger{background-color:#f2dede;border-color:#ebccd1;color:#a94442}
 .alert .content-block-title{margin-top:0px;}
 .alert .content-block {margin-bottom:0px;}
 .img-responsive{display:block; max-width:100%; height:auto;}
 .text-left{text-align:left;}
+.text-right{text-align:right;}
 .text-center{text-align:center;}
 .text-center .img-responsive{margin-left:auto; margin-right:auto;}
 .text-stroke{text-decoration:line-through;}
@@ -101,4 +106,21 @@ table.contact-table i{font-size:30px; margin:2px 10px 0 0; color:#b6b6b6;}
 .main-toolbar a.link{font-size:10px; color:#f7b2ba;}
 .main-toolbar a.link.active{color:#fff;}
 .main-toolbar i{display:block;}
-#gmap{height:200px; background:#f4f4f4 url('../img/loading.gif') center center no-repeat; }
+.data-table table{width:100%;}
+.data-table table td{vertical-align:top;padding:2px 5px;}
+.data-table table td.first-cell{width:1px; font-size:12px; text-align:right; color:#999; padding-top:4px; white-space:nowrap;}
+.data-table table td.divider{text-transform:uppercase; padding:5px 10px; background-color:#e2001a; color:#fff;}
+.data-table table td ul{margin:0px; padding:0px; list-style-type:none;}
+.data-table table td ul li{display:block;}
+.data-table table td ul li img{display:inline-block; vertical-align:middle;}
+.text-overflow-dynamic-container{position: relative; max-width: 100%; padding: 0 !important; display: -webkit-flex; display: -moz-flex; display: flex; vertical-align: text-bottom !important;}
+.text-overflow-dynamic-ellipsis {position: absolute;white-space: nowrap;overflow-y: visible;overflow-x: hidden;text-overflow: ellipsis;-ms-text-overflow: ellipsis;-o-text-overflow: ellipsis;max-width: 100%;min-width: 0;top: 0;left: 0;}
+.text-overflow-dynamic-container:after,
+.text-overflow-dynamic-ellipsis:after {content: '-';display: inline-block;visibility: hidden;width: 0;}
+.order-status-3{background-color:#e8f9e8;}
+.order-status-5{background-color:#ffd6d6;}
+.order-status-6{background-color:#e9f3ff;}
+.order-status-7{background-color:#ececec;}
+.contacts-block .list-group-title{width:36px; padding:0 16px;}
+.contacts-block li:not(.list-group-title){padding-left:26px;}
+.my_badge {font-size:13px; display:inline-block; color:#fff; background:#e2001a; border-radius:20px; padding:0 6px; height:20px; line-height:20px; box-sizing:border-box; text-align:center;}
