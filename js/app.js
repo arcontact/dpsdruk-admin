@@ -29,7 +29,7 @@ var	$$ = Dom7, myApp, mainView,
 	myMessages, totalMessages = 0, chat_interval,
 	baseurl = 'https://www.dpsdruk.pl/',
 	session_id = randId(),
-	ENVIRONMENT = 'development'; //production
+	ENVIRONMENT = 'production'; //development | production
 var app = {
 	initialize: function(){
 		this.bindEvents();
